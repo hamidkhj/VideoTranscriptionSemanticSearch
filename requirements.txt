@@ -6,6 +6,7 @@ deepgram-sdk
 cohere
 numpy
 faiss-cpu
+# python-jose[cryptography]
 python-dotenv
-moviepy
+moviepy==1.0.3
 google-generativeai
