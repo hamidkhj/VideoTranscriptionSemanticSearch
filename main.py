@@ -11,6 +11,7 @@ import numpy as np
 import faiss
 from datetime import timedelta
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 
 
 from deepgram import DeepgramClient, PrerecordedOptions
@@ -413,14 +414,15 @@ async def list_videos():
         for vid_id, data in video_data.items()
     ]
 
-# @app.delete("/videos/{video_id}")
-# async def delete_video(video_id: str):
-#     """Delete a processed video"""
-#     if video_id not in video_data:
-#         raise HTTPException(status_code=404, detail="Video not found")
-    
-#     del video_data[video_id]
-#     return {"message": "Video deleted successfully"}
+@app.get("/health/")
+async def health_check():
+    try:
+        # Simulate a simple check, e.g., database connection check if needed
+        # For now, we'll assume it's always healthy
+        return JSONResponse(status_code=200, content={"status": "healthy"})
+    except Exception as e:
+        # In case of any failure, return 500 Internal Server Error
+        return JSONResponse(status_code=500, content={"status": "unhealthy", "error": str(e)})
 
 if __name__ == "__main__":
     import uvicorn
