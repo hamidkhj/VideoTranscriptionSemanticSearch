@@ -109,7 +109,7 @@ async def transcribe_audio(audio_path: str) -> Dict[str, Any]:
 
         payload = {"buffer": buffer_data}
         options = PrerecordedOptions(
-            model="nova-2",
+            model="nova-3",
             smart_format=True,
             utterances=True,
             punctuate=True,
@@ -252,7 +252,7 @@ def create_embeddings_and_index(chunks: List[TranscriptionChunk]) -> tuple:
 
         print('returning embeddings')
         
-        return index, embeddings, chunks
+        return index, embeddings
     
     except Exception as e:
         print(f"Error creating embeddings: {e}")
@@ -304,7 +304,7 @@ async def upload_video(file: UploadFile = File(...)):
         generate_srt_file(chunks, srt_file_path)
         
         # Create embeddings and FAISS index
-        index, embeddings, processed_chunks = create_embeddings_and_index(chunks)
+        index, embeddings = create_embeddings_and_index(chunks)
         if index is None:
             raise HTTPException(status_code=500, detail="Failed to create embeddings")
         
@@ -313,7 +313,7 @@ async def upload_video(file: UploadFile = File(...)):
         # Store data
         video_data[video_id] = {
             'filename': file.filename,
-            'chunks': processed_chunks,
+            'chunks': chunks,
             'index': index,
             'embeddings': embeddings,
             'transcript': full_transcript, 
@@ -327,14 +327,14 @@ async def upload_video(file: UploadFile = File(...)):
 
         print('uploading video finished successfully')
 
-        print(len(processed_chunks))
+        print(len(chunks))
         print(len(video_id))
         print(len(file.filename))
         
         return {
             "video_id": video_id,
             "filename": file.filename,
-            "total_chunks": len(processed_chunks),
+            "total_chunks": len(chunks),
             'summary': summary,
             "message": "Video processed successfully",
             'srt_file': srt_file_path
@@ -376,7 +376,7 @@ async def search_video(request: SearchRequest):
         # Search in FAISS index
         video_info = video_data[request.video_id]
         scores, indices = video_info['index'].search(query_embedding, request.top_k)
-        
+        print(scores)
         # Prepare results
         results = []
         for i, (score, idx) in enumerate(zip(scores[0], indices[0])):
